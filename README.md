@@ -9,3 +9,5 @@ And to see API key use  https://developers.google.com/custom-search/v1/introduct
 
 View picture in repo
 
+Plus just put your worldlist in password_file in main.py for bruteforce e.g /home/user/Downloads/10-million-password-list-top-100000.txt 
+
