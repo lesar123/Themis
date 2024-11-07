@@ -13,4 +13,5 @@ Plus just put your worldlist in password_file in main.py for bruteforce e.g /hom
 
 --------------------------------------------------------------------------------------------------------------
 UPDATES:
+
 I added some new features on google dorks, fixed that when u didnt get any output from search (or some) --> now it asks u if u want to search every component separately
