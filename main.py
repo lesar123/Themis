@@ -16,14 +16,11 @@ def start_google_dork():
     api_key = input("Enter your google API key: ")
     cse_id = input("Enter your google search engine id: ")
     search_term = input("Enter the search term: ")
-    if search_term ==  'vito lesar' or 'Vito Lesar':
-        print("Error")
-        start_google_dork()
 
-
-    #Ask the user if he wants to search search_term on specific site
+     # Ask the user if he wants to search search_term on specific site
     specific_site = input("Do you want to search specific website? Enter your domain(e.g. 'example.com'): ")
-    google_dork(api_key, cse_id, search_term, specific_site = specific_site if specific_site else None)
+    google_dork(api_key, cse_id, search_term, specific_site=specific_site if specific_site else None)
+
 
 def google_dork(api_key, cse_id, search_term, specific_site = None):
     #Build the google dork query
@@ -65,12 +62,72 @@ def google_dork(api_key, cse_id, search_term, specific_site = None):
             if 'error' in results:
                 print("Error details:", results['error']['message'])
 
+        # Ask the user if they want to search with separate queries
+        retry_separately = input("Do you want to try searching each term separately? (yes/no): ").strip().lower()
+        if retry_separately == 'yes':
+            search_separately(api_key, cse_id, search_term, specific_site)
+
     except requests.exceptions.HTTPError as http_err:
         print(f"HTTP error occurred: {http_err}")
     except requests.exceptions.RequestException as req_err:
         print(f"Request error occurred: {req_err}")
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
+
+
+def search_separately(api_key, cse_id, search_term, specific_site):
+    # Define individual search components
+    components = ["intitle", "inurl", "intext"]
+
+    for component in components:
+        query = f'{component}:"{search_term}"'
+        if specific_site:
+            query += f' site:"{specific_site}"'
+
+        # Print the specific component-based query
+        print(f"\nTrying {component} query: {query}")
+
+        # Set the request parameters
+        url = 'https://www.googleapis.com/customsearch/v1'
+        params = {
+            'key': api_key,
+            'cx': cse_id,
+            'q': query,
+        }
+
+        # Send request and handle the response for each component
+        try:
+            response = requests.get(url, params=params)
+            response.raise_for_status()
+            results = response.json()
+
+            # Print the entire response for debugging purposes
+            print("Debug - API Response:", results)
+
+            # Check if 'items' exists to display results for this component
+            if 'items' in results:
+                for item in results['items']:
+                    title = item.get('title', 'No title')
+                    link = item.get('link', 'No link')
+                    snippet = item.get('snippet', 'No snippet available')
+                    print(f"Title: {title}")
+                    print(f"Link: {link}")
+                    print(f"Snippet: {snippet}\n")
+            else:
+                print(f"No results found for {component} query.")
+
+            # After each component search, ask if the user wants to proceed with the next
+            proceed = input(f"Do you want to try the next search component ({component})? (yes/no): ").strip().lower()
+            if proceed != 'yes':
+                print("Stopping further searches.")
+                break
+
+        except requests.exceptions.HTTPError as http_err:
+            print(f"HTTP error occurred: {http_err}")
+        except requests.exceptions.RequestException as req_err:
+            print(f"Request error occurred: {req_err}")
+        except Exception as e:
+            print(f"An unexpected error occurred: {e}")
 
 
 def start_deauth_attack():
@@ -148,45 +205,47 @@ def brute_force_ssh(target_ip, usernames, password_file):
 
 
 def check_root():
+    #Check if the script is being run as root
     if os.geteuid() != 0:
         print("This script requires root privileges. Please run as root or with 'sudo'.")
         sys.exit(1)
 
-
 def start_nmap_scan():
+    #Promt for ip range and initiate Nmap scan
     ip_range = input("Enter the IP range to scan (e.g., 192.168.1.1/24): ")
     nmap_scan(ip_range)
 
 def nmap_scan(ip_range):
-    check_root()  # Check if the script is run with root privileges
+    #Perform an Nmap scan on the provided IP range.
+    check_root()  # Ensure root privileges
 
-    # Create a Nmap PortScanner object
+    # Create an Nmap PortScanner object
     nm = nmap.PortScanner()
 
-    # Combine multiple arguments as needed
+    # Define Nmap arguments
     arguments = '-sS -sV -O -A -p 1-1000'
-
-    # Run a scan on the provided IP range
     print(f"Scanning IP range: {ip_range} with arguments: {arguments}")
+
     try:
         nm.scan(hosts=ip_range, arguments=arguments)
     except Exception as e:
-        print(f"An error occurred: {e}")
+        print(f"An error occurred while scanning: {e}")
         return
 
-    # Parse and display the results
+    # Parse and display scan results
     for host in nm.all_hosts():
-        print(f'Host: {host} ({nm[host].hostname()})')
+        print(f'\nHost: {host} ({nm[host].hostname()})')
         print(f'State: {nm[host].state()}')
+
         for proto in nm[host].all_protocols():
             print(f'Protocol: {proto}')
-            lport = nm[host][proto].keys()
-            for port in lport:
-                print(f'Port: {port}\tState: {nm[host][proto][port]["state"]}')
-                if 'name' in nm[host][proto][port]:
-                    print(f'   Service: {nm[host][proto][port]["name"]}')
-                if 'version' in nm[host][proto][port]:
-                    print(f'   Version: {nm[host][proto][port]["version"]}')
+            for port in nm[host][proto]:
+                port_info = nm[host][proto][port]
+                print(f'  Port: {port}\tState: {port_info["state"]}')
+                if 'name' in port_info:
+                    print(f'    Service: {port_info["name"]}')
+                if 'version' in port_info:
+                    print(f'    Version: {port_info["version"]}')
 
 
 # Example usage
@@ -199,8 +258,8 @@ def main_menu():
    ██║   ██║  ██║███████╗██║ ╚═╝ ██║██║███████║
    ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝     ╚═╝╚═╝╚══════╝     
                                                 
-        1. Start Brute Force SSH Attack
-        2. Start Nmap Scan
+        1. Start Nmap Scan
+        2. Start Brute Force SSH Attack
         3. Deauth Attack
         4.Google Dorks
         Type 'Exit' to exit""")
