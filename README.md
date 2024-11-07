@@ -11,3 +11,5 @@ View picture in repo
 
 Plus just put your worldlist in password_file in main.py for bruteforce e.g /home/user/Downloads/10-million-password-list-top-100000.txt 
 
+-----------------------------------------------------------------------------------------------------------------------UPDATES:
+I added some new features on google dorks, fixed that when u didnt get any output from search (or some) --> now it asks u if u want to search every component separately
